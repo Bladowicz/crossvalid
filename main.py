@@ -12,7 +12,7 @@ import random
 
 def change_classes(in_file, out_file, border=0, cut=None):
     with open(in_file) as fw:
-
+        pass
 
 def create_temp_folder(base):
     token = ''.join([random.choice(string.hexdigits) for x in range(4)])
