@@ -7,7 +7,11 @@ import filter_features.main as ff
 import string
 import random
 import itertools
+import shutil
+import random
 
+def change_classes(in_file, out_file, border=0, cut=None):
+    with open(in_file) as fw:
 
 
 def create_temp_folder(base):
@@ -25,6 +29,8 @@ def preparefile(infile, temp_folder, mincount):
     logging.info('Removing features with less than {}'.format(mincount))
     filtered_reformed = os.path.join(temp_folder, 'filtered')
     ff.filter_features(reformed, filtered_reformed, mincount)
+    
+
     return filtered_reformed
 
 def spliting_files(parts, infile, temp_folder):
@@ -57,11 +63,14 @@ def run_vopal(part, temp_folder):
     os.system(p)
     
 
-def crossvalidation(parts, infile, temp_base, outfile, mincount):
+def crossvalidation(parts, infile, temp_base, outfile, mincount, samples=None):
     temp_folder = create_temp_folder(temp_base)
     logging.info('Starting crossvalidation for file : {}'.format(infile) )
     preparedfile = preparefile(infile, temp_folder, mincount)
     splited_files = spliting_files(parts, preparedfile, temp_folder)
+    if samples:
+        splited_files = random.sample(splited_files, samples)
+
     for part in splited_files:
         run_vopal(part , temp_folder)
     with open(outfile, 'w') as fw:
@@ -69,11 +78,14 @@ def crossvalidation(parts, infile, temp_base, outfile, mincount):
             logging.info('Merging part {}'.format(part[0]))
             for line_a, line_b in itertools.izip(open(part[2]), open(part[4])):
                 fw.write('\t'.join([line_a.split()[0], line_b.split()[0]] )+'\n')
-    logging.warning('---| rm -rf {}'.format(temp_folder))
+    try:
+        shutil.rmtree(temp_folder)
+    except:
+        logging.warning('---| rm -rf {}'.format(temp_folder))
+#
 
-
-def main(parts, infile, temp_base, outfile, mincount):
-    crossvalidation(parts, infile, temp_base, outfile,  mincount)
+def main(parts, infile, temp_base, outfile, mincount, samples=None):
+    crossvalidation(parts, infile, temp_base, outfile,  mincount, samples)
 
 
 if __name__=="__main__":
@@ -83,10 +95,11 @@ if __name__=="__main__":
     infile = config.in_file
     temp_base = config.temp_location
     outfile = config.out_file
+    samples = config.samples
     query = "vw {in_file} -k -f {out_file} --cache_file {out_file}_cache -b 22 --passes 10 --meanfield --multitask --nn 13 --keep b --keep h --ignore u --keep r --interactions bb --ftrl --loss_function logistic"
     pred = "vw -d {test_file} -t -i {out_file}  -p {pred_file}"
     
-    main(parts, infile, temp_base, outfile,  mincount)
+    main(parts, infile, temp_base, outfile,  mincount, samples)
 
 
 

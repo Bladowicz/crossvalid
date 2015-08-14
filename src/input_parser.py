@@ -6,6 +6,14 @@ import sys
 def validate_args(conf):
     conf.in_file = conf.in_file[0]
     conf.out_file = conf.out_file[0]
+    conf.parts = int(conf.parts)
+    if conf.samples != None:
+        conf.samples = int(conf.samples)
+    else:
+        conf.sample = conf.parts
+    if conf.samples > conf.parts:
+        logging.fatal('WTF')
+        sys.exit(1)
 #    conf.product = conf.product[0]
 #    if not os.path.exists(conf.in_file):
 #        logging.error('Input file does not exist')
@@ -30,7 +38,7 @@ def validate_args(conf):
 def _get():
     parser = argparse.ArgumentParser()
  #   sp = parser.add_subparsers()
-    method = parser.add_mutually_exclusive_group(required=True)    
+#    method = parser.add_mutually_exclusive_group(required=True)    
 
     parser.add_argument(action='store', dest='in_file',
                                 help='Input file in Vopal Wabbit input format',
@@ -43,17 +51,22 @@ def _get():
                                 )
 
 
-    method.add_argument('-c', action='store', dest='mincount',
+    parser.add_argument('-c', action='store', dest='mincount',
                                 help='Min count of occurences',
                                 default=250)
 
 
-    method.add_argument('-p', action='store', dest='parts',
+    parser.add_argument('-s', action='store', dest='samples',
+                                help='Samples to draw fro parts',
+                                default=None)
+
+
+    parser.add_argument('-p', action='store', dest='parts',
                                 help='Parts to fold',
                                 default=4)
 
 
-    method.add_argument('-t', action='store', dest='temp_location',
+    parser.add_argument('-t', action='store', dest='temp_location',
                                 help='Location for calculations',
                                 default="/home/model/.crossvalidation/")
 
