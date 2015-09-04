@@ -56,14 +56,14 @@ def spliting_files(parts, infile, temp_folder):
         file_list.append(part_files)
     return file_list
 
-def run_vopal(part, temp_folder):
-    q = query.format(in_file=part[1], out_file=part[3])
+def run_vopal(part, temp_folder, options):
+    q = query.format(in_file=part[1], out_file=part[3], options=options)
     os.system(q)
     p = pred.format(out_file=part[3], test_file=part[2], pred_file=part[4])
     os.system(p)
     
 
-def crossvalidation(parts, infile, temp_base, outfile, mincount, samples=None):
+def crossvalidation(parts, infile, temp_base, outfile, mincount, options, samples=None):
     temp_folder = create_temp_folder(temp_base)
     logging.info('Starting crossvalidation for file : {}'.format(infile) )
     preparedfile = preparefile(infile, temp_folder, mincount)
@@ -72,7 +72,7 @@ def crossvalidation(parts, infile, temp_base, outfile, mincount, samples=None):
         splited_files = random.sample(splited_files, samples)
 
     for part in splited_files:
-        run_vopal(part , temp_folder)
+        run_vopal(part , temp_folder, options)
     with open(outfile, 'w') as fw:
         for part in splited_files:
             logging.info('Merging part {}'.format(part[0]))
@@ -84,8 +84,8 @@ def crossvalidation(parts, infile, temp_base, outfile, mincount, samples=None):
         logging.warning('---| rm -rf {}'.format(temp_folder))
 #
 
-def main(parts, infile, temp_base, outfile, mincount, samples=None):
-    crossvalidation(parts, infile, temp_base, outfile,  mincount, samples)
+def main(parts, infile, temp_base, outfile, mincount, options, samples=None):
+    crossvalidation(parts, infile, temp_base, outfile,  mincount, options, samples)
 
 
 if __name__=="__main__":
@@ -96,10 +96,12 @@ if __name__=="__main__":
     temp_base = config.temp_location
     outfile = config.out_file
     samples = config.samples
-    query = "vw {in_file} -k -f {out_file} --cache_file {out_file}_cache -b 22 --passes 10 --meanfield --multitask --nn 13 --keep b --keep h --ignore u --keep r --interactions bb --ftrl --loss_function logistic"
+    options = config.options
+    #query = "vw {in_file} -k -f {out_file} --cache_file {out_file}_cache -b 22 --passes 10 --meanfield --multitask --nn 13 --keep b --keep h --ignore u --keep r --interactions bb --ftrl --loss_function logistic"
+    query = "vw {in_file} -k -f {out_file} --cache_file {out_file}_cache {options}"
     pred = "vw -d {test_file} -t -i {out_file}  -p {pred_file}"
     
-    main(parts, infile, temp_base, outfile,  mincount, samples)
+    main(parts, infile, temp_base, outfile,  mincount, options, samples)
 
 
 

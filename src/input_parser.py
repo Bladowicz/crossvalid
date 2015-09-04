@@ -71,6 +71,11 @@ def _get():
                                 default="/home/model/.crossvalidation/")
 
 
+    parser.add_argument('-o', action='store', dest='options',
+                                help='VW model options',
+                                default="-b 22 --passes 10 --meanfield --multitask --nn 13 --keep b --keep h --ignore u --keep r --interactions bb --ftrl --loss_function logistic")
+
+
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     out =  parser.parse_args()
     validate_args(out)
